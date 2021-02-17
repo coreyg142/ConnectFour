@@ -1,10 +1,11 @@
 import GameElements
 
-BOARD_DIM = 10
+DIM_ROW = 6
+DIM_COL = 7
 
 
 def main():
-	board = GameElements.Board(BOARD_DIM)
+	board = GameElements.Board(DIM_COL, DIM_ROW)
 
 	board.printBoard()
 

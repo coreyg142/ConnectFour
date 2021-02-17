@@ -11,8 +11,8 @@ class Piece(Enum):
 
 
 class Board(object):
-	def __init__(self, dim):
-		self._GameBoard = [[Piece.empty for x in range(dim)] for y in range(dim)]
+	def __init__(self, dim_col, dim_row):
+		self._GameBoard = [[Piece.empty for x in range(dim_col)] for y in range(dim_row)]
 
 	def printBoard(self):
 
