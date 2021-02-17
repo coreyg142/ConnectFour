@@ -5,11 +5,10 @@ DIM_COL = 7
 
 
 def main():
-	board = GameElements.Board(DIM_COL, DIM_ROW)
+    board = GameElements.Board(DIM_COL, DIM_ROW)
 
-	board.printBoard()
-
+    board.printBoard()
 
 
 if __name__ == '__main__':
-	main()
+    main()
