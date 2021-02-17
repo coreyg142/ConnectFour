@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class Token(Enum):
+class Piece(Enum):
 	empty = "[ ]"
 	red = "[R]"
 	yellow = "[Y]"
@@ -12,7 +12,7 @@ class Token(Enum):
 
 class Board(object):
 	def __init__(self, dim):
-		self._GameBoard = [[Token.empty for x in range(dim)] for y in range(dim)]
+		self._GameBoard = [[Piece.empty for x in range(dim)] for y in range(dim)]
 
 	def printBoard(self):
 
