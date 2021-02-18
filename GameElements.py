@@ -84,6 +84,9 @@ class GameManager(object):
             board.printBoard()
             inp = self.playerInput(p1, board)
             board.makeMove(p1.getTeam(), inp)
+            board.printBoard()
+            inp = self.playerInput(p2, board)
+            board.makeMove(p2.getTeam(), inp)
 
     def playerInput(self, player, board):
         dim = self._board.getColNum()
