@@ -94,7 +94,7 @@ class GameManager(object):
         print(str(player) + ", which column do you wish to drop in?")
         while not valid:
             try:
-                inp = int(input("Column: ")) - 1
+                inp = int(input("Input: ")) - 1
                 isValid = board.isValidMove(inp)
                 if isValid is _Move.VALID:
                     return inp
