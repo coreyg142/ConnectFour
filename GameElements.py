@@ -10,10 +10,19 @@ class _Piece(Enum):
         return str(self.value)
 
 
+class _Move(Enum):
+    OUT_OF_BOUNDS = "Invalid input, please enter a number between 1 and "
+    COL_FULL = "Invalid input, please enter a column that is not full"
+    VALID = 2
+
+    def __str__(self):
+        return str(self.value)
+
+
 class _Board(object):
     def __init__(self, dimCol, dimRow):
         self._GameBoard = [[_Piece.empty for x in range(dimCol)] for y in range(dimRow)]
-        self._GameBoardFill = [0 for x in range(dimCol)]
+        self._GameBoardFill = [len(self._GameBoard) - 1 for x in range(dimCol)]
 
     def printBoard(self):
         for i in range(len(self._GameBoard)):
@@ -24,6 +33,28 @@ class _Board(object):
     def getColNum(self):
         return len(self._GameBoardFill)
 
+    def getColFill(self, col):
+        return self._GameBoardFill[col]
+
+    def makeMove(self, team, col):
+        fill = self._GameBoardFill
+        if self.isValidMove(fill[col]):
+            if team is _Piece.red:
+                self._GameBoard[fill[col]][col] = _Piece.red
+            else:
+                self._GameBoard[fill[col]][col] = _Piece.yellow
+            fill[col] -= 1
+            return True
+        return False
+
+    def isValidMove(self, col):
+        if col < 0 or col > self.getColNum():
+            return _Move.OUT_OF_BOUNDS
+        elif self._GameBoardFill[col] < 0:
+            return _Move.COL_FULL
+        else:
+            return _Move.VALID
+
 
 class _Player(object):
     def __init__(self, team, name):
@@ -33,28 +64,41 @@ class _Player(object):
     def __str__(self):
         return self._name + str(self._team)
 
+    def getTeam(self):
+        return self._team
+
 
 class GameManager(object):
     def __init__(self, dim_col, dim_row):
         self._player1 = None
         self._player2 = None
         self._board = _Board(dim_col, dim_row)
+        global COL
+        COL = dim_col
 
     def mainLoop(self):
+        board = self._board
+        p1 = self._player1
+        p2 = self._player2
         while True:
-            self._board.printBoard()
-            inp = self.playerInput(self._player1, self._board.getColNum())
+            board.printBoard()
+            inp = self.playerInput(p1, board)
+            board.makeMove(p1.getTeam(), inp)
 
-    def playerInput(self, player, dim):
+    def playerInput(self, player, board):
+        dim = self._board.getColNum()
         valid = False
         print(str(player) + ", which column do you wish to drop in?")
         while not valid:
             try:
-                inp = int(input("Column: "))
-                if inp > dim or inp <= 0:
-                    print("Invalid input, please enter a number between 1 and " + str(dim))
+                inp = int(input("Column: ")) - 1
+                isValid = board.isValidMove(inp)
+                if isValid is _Move.VALID:
+                    return inp
+                elif isValid is _Move.OUT_OF_BOUNDS:
+                    print(str(isValid) + str(dim))
                 else:
-                    return inp - 1
+                    print(isValid)
             except ValueError:
                 print("Invalid input, please enter a number")
 

@@ -11,6 +11,7 @@ def main():
     DIM_COL = args.col
 
     gameManager = GameElements.GameManager(DIM_COL, DIM_ROW)
+
     gameManager.run()
 
 
