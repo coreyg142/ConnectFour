@@ -10,6 +10,9 @@ def main():
     DIM_ROW = args.row
     DIM_COL = args.col
 
+    gameManager = GameElements.GameManager(DIM_COL, DIM_ROW)
+    gameManager.run()
+
 
 if __name__ == '__main__':
     main()
