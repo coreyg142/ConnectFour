@@ -1,13 +1,16 @@
 import GameElements
-
-DIM_ROW = 6
-DIM_COL = 7
+import argparse
 
 
 def main():
-    board = GameElements.Board(DIM_COL, DIM_ROW)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-r", "--row", help="The row dimension. Defaults to 6", type=int, default=6)
+    parser.add_argument("-c", "--col", help="The column dimension. Defaults to 7", type=int, default=7)
+    args = parser.parse_args()
+    DIM_ROW = args.row
+    DIM_COL = args.col
 
-    board.printBoard()
+
 
 
 if __name__ == '__main__':
