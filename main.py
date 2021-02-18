@@ -11,7 +11,5 @@ def main():
     DIM_COL = args.col
 
 
-
-
 if __name__ == '__main__':
     main()
