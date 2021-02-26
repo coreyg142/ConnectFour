@@ -1,5 +1,6 @@
 import os
 import discord
+import GameElements
 from dotenv import load_dotenv
 
 
@@ -22,6 +23,12 @@ def main():
             embedVar = discord.Embed(title="Title", description="Desc.", color=0x00ff00)
             embedVar.add_field(name="Field1", value="hi")
             await message.channel.send(embed=embedVar)
+
+        if message.content == '!board':
+            board = GameElements.Board(6, 7)
+            embedVar = discord.Embed(title="Connect Four Board")
+            embedVar.add_field(name="Board", value=str(board))
+            message = await message.channel.send(embed=embedVar)
 
 
     client.run(TOKEN)

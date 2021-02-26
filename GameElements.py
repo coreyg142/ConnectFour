@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class _Piece(Enum):
+class Piece(Enum):
     empty = "[ ]"
     red = "[X]"
     yellow = "[O]"
@@ -10,7 +10,7 @@ class _Piece(Enum):
         return str(self.value)
 
 
-class _Move(Enum):
+class Move(Enum):
     OUT_OF_BOUNDS = "Invalid input, please enter a number between 1 and "
     COL_FULL = "Invalid input, please enter a column that is not full"
     VALID = 2
@@ -19,12 +19,25 @@ class _Move(Enum):
         return str(self.value)
 
 
-class _Board(object):
+class Board(object):
     def __init__(self, dimCol, dimRow):
         self.row = dimRow
         self.col = dimCol
-        self._GameBoard = [[_Piece.empty for x in range(dimCol)] for y in range(dimRow)]
+        self._GameBoard = [[Piece.empty for x in range(dimCol)] for y in range(dimRow)]
         self._GameBoardFill = [len(self._GameBoard) - 1 for x in range(dimCol)]
+
+    def __str__(self):
+        strOutp = ""
+        for i in range(len(self._GameBoard)):
+            for j in range(len(self._GameBoard[0])):
+                if self._GameBoard[i][j] == Piece.red:
+                    strOutp += '🔴'
+                elif self._GameBoard[i][j] == Piece.yellow:
+                    strOutp += '🟡'
+                else:
+                    strOutp += '⚪'
+            strOutp += '\n'
+        return strOutp
 
     def printBoard(self):
         for i in range(len(self._GameBoard)):
@@ -41,21 +54,21 @@ class _Board(object):
     def makeMove(self, team, col):
         fill = self._GameBoardFill
         if self.isValidMove(fill[col]):
-            if team is _Piece.red:
-                self._GameBoard[fill[col]][col] = _Piece.red
+            if team is Piece.red:
+                self._GameBoard[fill[col]][col] = Piece.red
             else:
-                self._GameBoard[fill[col]][col] = _Piece.yellow
+                self._GameBoard[fill[col]][col] = Piece.yellow
             fill[col] -= 1
             return True
         return False
 
     def isValidMove(self, col):
         if col < 0 or col > self.col:
-            return _Move.OUT_OF_BOUNDS
+            return Move.OUT_OF_BOUNDS
         elif self._GameBoardFill[col] < 0:
-            return _Move.COL_FULL
+            return Move.COL_FULL
         else:
-            return _Move.VALID
+            return Move.VALID
 
     def checkIfWinner(self):
         directions = [[1, 0], [1, -1], [1, 1], [0, 1]]
@@ -71,16 +84,16 @@ class _Board(object):
                     lastY = y + 3 * dy
                     if 0 <= lastX < maxRow and 0 <= lastY < maxCol:
                         piece = board[x][y]
-                        if piece is not _Piece.empty \
+                        if piece is not Piece.empty \
                                 and piece == board[x + dx][y + dy] \
                                 and piece == board[x + 2 * dx][y + 2 * dy] \
                                 and piece == board[lastX][lastY]:
                             return True, piece
 
-        return False, _Piece.empty
+        return False, Piece.empty
 
 
-class _Player(object):
+class Player(object):
     def __init__(self, team, name):
         self._team = team
         self._name = name
@@ -99,14 +112,14 @@ class GameManager(object):
         self._player2 = None
         self.dimCol = dim_col
         self.dimRow = dim_row
-        self._board = _Board(dim_col, dim_row)
+        self._board = Board(dim_col, dim_row)
 
     def mainLoop(self):
         board = self._board
         p1 = self._player1
         p2 = self._player2
         isOver = False
-        winner = _Piece.empty
+        winner = Piece.empty
         while not isOver:
             self.handleInpMove(p1, board)
             isOver, winner = board.checkIfWinner()
@@ -115,7 +128,7 @@ class GameManager(object):
             isOver, winner = board.checkIfWinner()
 
         board.printBoard()
-        if winner is _Piece.red:
+        if winner is Piece.red:
             self.endGame(p1)
         else:
             self.endGame(p2)
@@ -128,17 +141,17 @@ class GameManager(object):
             try:
                 inp = int(input("Input: ")) - 1
                 isValid = board.isValidMove(inp)
-                if isValid is _Move.VALID:
+                if isValid is Move.VALID:
                     return inp
-                elif isValid is _Move.OUT_OF_BOUNDS:
+                elif isValid is Move.OUT_OF_BOUNDS:
                     print(str(isValid) + str(dim))
-                elif isValid is _Move.COL_FULL:
+                elif isValid is Move.COL_FULL:
                     print(isValid)
             except ValueError:
                 print("Invalid input, please enter a number")
 
     def resetBoard(self):
-        self._board = _Board(self.dimCol, self.dimRow)
+        self._board = Board(self.dimCol, self.dimRow)
 
     def handleInpMove(self, player, board):
         board.printBoard()
@@ -167,5 +180,5 @@ class GameManager(object):
         print("Player 2 please type your preferred name: ")
         p2Name = input("Name: ")
 
-        self._player1 = _Player(_Piece.red, p1Name)
-        self._player2 = _Player(_Piece.yellow, p2Name)
+        self._player1 = Player(Piece.red, p1Name)
+        self._player2 = Player(Piece.yellow, p2Name)
