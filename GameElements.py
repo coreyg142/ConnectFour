@@ -75,9 +75,9 @@ class _Board(object):
                                 and piece == board[x + dx][y + dy] \
                                 and piece == board[x + 2 * dx][y + 2 * dy] \
                                 and piece == board[lastX][lastY]:
-                            return piece
+                            return True, piece
 
-        return _Piece.empty
+        return False, _Piece.empty
 
 
 class _Player(object):
@@ -93,28 +93,32 @@ class _Player(object):
 
 
 class GameManager(object):
+
     def __init__(self, dim_col, dim_row):
         self._player1 = None
         self._player2 = None
+        self.dimCol = dim_col
+        self.dimRow = dim_row
         self._board = _Board(dim_col, dim_row)
-
-    def handleInpMove(self, player, board):
-        board.printBoard()
-        inp = self.playerInput(player, board)
-        board.makeMove(player.getTeam(), inp)
-        return board.checkIfWinner()
 
     def mainLoop(self):
         board = self._board
         p1 = self._player1
         p2 = self._player2
+        isOver = False
         winner = _Piece.empty
-        while winner == _Piece.empty:
-            winner = self.handleInpMove(p1, board)
+        while not isOver:
+            self.handleInpMove(p1, board)
+            isOver, winner = board.checkIfWinner()
+            if isOver: break
+            self.handleInpMove(p2, board)
+            isOver, winner = board.checkIfWinner()
 
-
-
-
+        board.printBoard()
+        if winner is _Piece.red:
+            self.endGame(p1)
+        else:
+            self.endGame(p2)
 
     def playerInput(self, player, board):
         dim = self._board.getMaxCol()
@@ -132,6 +136,25 @@ class GameManager(object):
                     print(isValid)
             except ValueError:
                 print("Invalid input, please enter a number")
+
+    def resetBoard(self):
+        self._board = _Board(self.dimCol, self.dimRow)
+
+    def handleInpMove(self, player, board):
+        board.printBoard()
+        inp = self.playerInput(player, board)
+        board.makeMove(player.getTeam(), inp)
+
+    def endGame(self, winner):
+        print("{} has won the game!".format(winner))
+        print("Would you like to play another?")
+        inp = input("yes/no: ").lower()
+        if inp == "yes":
+            print("Resetting board and restarting... ")
+            self.resetBoard()
+            self.mainLoop()
+        elif inp == "no":
+            print("Thank you for playing!")
 
     def run(self):
         self.login()
