@@ -11,7 +11,18 @@ def main():
 
     @client.event
     async def on_ready():
-        print(f'{client.user} has connected to Discord!')
+        print(f'{client.user.name} has connected to Discord!')
+
+    @client.event
+    async def on_message(message):
+        if message.author == client.user:
+            return
+
+        if message.content == '!test':
+            embedVar = discord.Embed(title="Title", description="Desc.", color=0x00ff00)
+            embedVar.add_field(name="Field1", value="hi")
+            await message.channel.send(embed=embedVar)
+
 
     client.run(TOKEN)
 
