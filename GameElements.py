@@ -21,6 +21,8 @@ class _Move(Enum):
 
 class _Board(object):
     def __init__(self, dimCol, dimRow):
+        self.row = dimRow
+        self.col = dimCol
         self._GameBoard = [[_Piece.empty for x in range(dimCol)] for y in range(dimRow)]
         self._GameBoardFill = [len(self._GameBoard) - 1 for x in range(dimCol)]
 
@@ -30,11 +32,11 @@ class _Board(object):
                 print(self._GameBoard[i][j], end='')
             print()
 
-    def getColNum(self):
-        return len(self._GameBoardFill)
+    def getMaxCol(self):
+        return self.col
 
-    def getColFill(self, col):
-        return self._GameBoardFill[col]
+    def getMaxRow(self):
+        return self.row
 
     def makeMove(self, team, col):
         fill = self._GameBoardFill
@@ -48,12 +50,34 @@ class _Board(object):
         return False
 
     def isValidMove(self, col):
-        if col < 0 or col > self.getColNum():
+        if col < 0 or col > self.col:
             return _Move.OUT_OF_BOUNDS
         elif self._GameBoardFill[col] < 0:
             return _Move.COL_FULL
         else:
             return _Move.VALID
+
+    def checkIfWinner(self):
+        directions = [[1, 0], [1, -1], [1, 1], [0, 1]]
+        maxRow = self.row
+        maxCol = self.col
+        board = self._GameBoard
+        for d in directions:
+            dx = d[0]
+            dy = d[1]
+            for x in range(maxRow):
+                for y in range(maxCol):
+                    lastX = x + 3 * dx
+                    lastY = y + 3 * dy
+                    if 0 <= lastX < maxRow and 0 <= lastY < maxCol:
+                        piece = board[x][y]
+                        if piece is not _Piece.empty \
+                                and piece == board[x + dx][y + dy] \
+                                and piece == board[x + 2 * dx][y + 2 * dy] \
+                                and piece == board[lastX][lastY]:
+                            return piece
+
+        return _Piece.empty
 
 
 class _Player(object):
@@ -73,23 +97,27 @@ class GameManager(object):
         self._player1 = None
         self._player2 = None
         self._board = _Board(dim_col, dim_row)
-        global COL
-        COL = dim_col
+
+    def handleInpMove(self, player, board):
+        board.printBoard()
+        inp = self.playerInput(player, board)
+        board.makeMove(player.getTeam(), inp)
+        return board.checkIfWinner()
 
     def mainLoop(self):
         board = self._board
         p1 = self._player1
         p2 = self._player2
-        while True:
-            board.printBoard()
-            inp = self.playerInput(p1, board)
-            board.makeMove(p1.getTeam(), inp)
-            board.printBoard()
-            inp = self.playerInput(p2, board)
-            board.makeMove(p2.getTeam(), inp)
+        winner = _Piece.empty
+        while winner == _Piece.empty:
+            winner = self.handleInpMove(p1, board)
+
+
+
+
 
     def playerInput(self, player, board):
-        dim = self._board.getColNum()
+        dim = self._board.getMaxCol()
         valid = False
         print(str(player) + ", which column do you wish to drop in?")
         while not valid:
@@ -100,7 +128,7 @@ class GameManager(object):
                     return inp
                 elif isValid is _Move.OUT_OF_BOUNDS:
                     print(str(isValid) + str(dim))
-                else:
+                elif isValid is _Move.COL_FULL:
                     print(isValid)
             except ValueError:
                 print("Invalid input, please enter a number")
