@@ -77,5 +77,6 @@ def run(row, col):
         player1, player2 = await login()
         game.login(player1.name, player2.name)
 
+        await ctx.channel.send(game.getBoard())
 
     bot.run(TOKEN)

@@ -118,6 +118,9 @@ class GameManagerDUI(object):
         self._player1 = Player(Piece.red, p1)
         self._player2 = Player(Piece.yellow, p2)
 
+    def getBoard(self):
+        return self._board
+
 
 class GameManagerTUI(object):
 
