@@ -7,6 +7,7 @@ from discord.ext import commands
 PLAYER_ONE = "Player 1"
 PLAYER_TWO = "Player 2"
 
+
 def run(row, col):
     load_dotenv()
     TOKEN = os.getenv('DISCORD_TOKEN')
@@ -15,7 +16,6 @@ def run(row, col):
     @bot.event
     async def on_ready():
         print("{} has connected to Discord!".format(bot.user.name))
-
 
     @bot.command()
     @commands.has_permissions(administrator=True)
@@ -26,24 +26,37 @@ def run(row, col):
 
     @bot.command()
     async def newgame(ctx):
+
+        def check(reaction, user):
+            return (str(reaction.emoji) == '1️⃣' or str(reaction.emoji) == '2️⃣') and not user.bot
+
+        async def login():
+            p1assigned, p2assigned = False, False
+            p1, p2 = None, None
+            while not p1assigned or not p2assigned:
+                reaction, user = await bot.wait_for("reaction_add", check=check)
+                if str(reaction.emoji) == '1️⃣' and not p1assigned:
+                    p1assigned = True
+                    p1 = user
+                    embedVar.set_field_at(index=0, name=PLAYER_ONE, value=p1.name)
+                    await assignmentMessage.edit(embed=embedVar)
+                elif str(reaction.emoji == '2️⃣' and not p2assigned):
+                    p2assigned = True
+                    p2 = user
+                    embedVar.set_field_at(index=1, name=PLAYER_TWO, value=p2.name)
+                    await assignmentMessage.edit(embed=embedVar)
+            embedVar.description = "Players locked in!"
+            await assignmentMessage.edit(embed=embedVar)
+            return p1, p2
+
         game = GameElements.GameManagerDUI(col, row)
-        await ctx.channel.send("Who will be player 1? Say \"me!\"")
-        player1 = await login(ctx, bot, PLAYER_ONE)
-        await ctx.channel.send("Who will be player 2? Say \"me!\"")
-        player2 = await login(ctx, bot, PLAYER_TWO)
-
-        print("{}".format(player1.bot))
-
+        embedVar = discord.Embed(title="Players", description="Who will be player 1 and player 2?")
+        embedVar.add_field(name=PLAYER_ONE, value="Awaiting player")
+        embedVar.add_field(name=PLAYER_TWO, value="Awaiting player")
+        assignmentMessage = await ctx.channel.send(embed=embedVar)
+        await assignmentMessage.add_reaction('1️⃣')
+        await assignmentMessage.add_reaction('2️⃣')
+        player1, player2 = await login()
         game.login(player1.name, player2.name)
 
     bot.run(TOKEN)
-
-
-async def login(ctx, bot, player):
-    msg = await bot.wait_for("message", check=check)
-    await ctx.channel.send("{} is {}!".format(msg.author, player))
-    return msg.author
-
-
-def check(msg):
-    return msg.content == "me!" and not msg.author.bot
