@@ -1,5 +1,5 @@
 from enum import Enum
-
+import Discord
 
 class Piece(Enum):
     empty = "[ ]"
@@ -105,7 +105,21 @@ class Player(object):
         return self._team
 
 
-class GameManager(object):
+class GameManagerDUI(object):
+
+    def __init__(self, dim_col, dim_row):
+        self._player1 = None
+        self._player2 = None
+        self.dimCol = dim_col
+        self.dimRow = dim_row
+        self._board = Board(dim_col, dim_row)
+
+    def login(self, p1, p2):
+        self._player1 = p1
+        self._player2 = p2
+
+
+class GameManagerTUI(object):
 
     def __init__(self, dim_col, dim_row):
         self._player1 = None
