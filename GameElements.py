@@ -117,7 +117,6 @@ class GameManagerDUI(object):
     def login(self, p1, p2):
         self._player1 = Player(Piece.red, p1)
         self._player2 = Player(Piece.yellow, p2)
-        print(self._player1)
 
 
 class GameManagerTUI(object):
