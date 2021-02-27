@@ -4,37 +4,18 @@ import GameElements
 from dotenv import load_dotenv
 from discord.ext import commands
 
+PLAYER_ONE = "Player 1"
+PLAYER_TWO = "Player 2"
 
 def run(row, col):
     load_dotenv()
     TOKEN = os.getenv('DISCORD_TOKEN')
-    # client = discord.Client()
     bot = commands.Bot(command_prefix='$')
+
     @bot.event
     async def on_ready():
         print("{} has connected to Discord!".format(bot.user.name))
 
-    # @client.event
-    # async def on_ready():
-    #     print(f'{client.user.name} has connected to Discord!')
-    #
-    # @client.event
-    # async def on_message(message):
-    #     if message.author == client.user:
-    #         return
-    #
-    #     if message.content == '!test':
-    #         embedVar = discord.Embed(title="Title", description="Desc.", color=0x00ff00)
-    #         embedVar.add_field(name="Field1", value="hi")
-    #         await message.channel.send(embed=embedVar)
-    #
-    #     if message.content == '!board':
-    #         board = GameElements.Board(6, 7)
-    #         embedVar = discord.Embed(title="Connect Four Board")
-    #         embedVar.add_field(name="Board", value=str(board))
-    #         messageVar = await message.channel.send(embed=embedVar)
-    #
-    #         await message.channel.send(str(board))
 
     @bot.command()
     @commands.has_permissions(administrator=True)
@@ -46,5 +27,23 @@ def run(row, col):
     @bot.command()
     async def newgame(ctx):
         game = GameElements.GameManagerDUI(col, row)
+        await ctx.channel.send("Who will be player 1? Say \"me!\"")
+        player1 = await login(ctx, bot, PLAYER_ONE)
+        await ctx.channel.send("Who will be player 2? Say \"me!\"")
+        player2 = await login(ctx, bot, PLAYER_TWO)
+
+        print("{}".format(player1.bot))
+
+        game.login(player1.name, player2.name)
 
     bot.run(TOKEN)
+
+
+async def login(ctx, bot, player):
+    msg = await bot.wait_for("message", check=check)
+    await ctx.channel.send("{} is {}!".format(msg.author, player))
+    return msg.author
+
+
+def check(msg):
+    return msg.content == "me!" and not msg.author.bot
