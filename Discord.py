@@ -29,7 +29,8 @@ def run(row, col):
     async def newgame(ctx):
 
         def check(reaction, user):
-            return (str(reaction.emoji) == '1️⃣' or str(reaction.emoji) == '2️⃣') and not user.bot
+            return (str(reaction.emoji) == '1️⃣' or str(reaction.emoji) == '2️⃣') and not user.bot and \
+                   reaction.message == assignmentMessage
 
         async def login():
             p1assigned, p2assigned = False, False
