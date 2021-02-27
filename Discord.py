@@ -4,8 +4,8 @@ import GameElements
 from dotenv import load_dotenv
 from discord.ext import commands
 
-PLAYER_ONE = "Player 1"
-PLAYER_TWO = "Player 2"
+PLAYER_ONE = "Player 1 🔴"
+PLAYER_TWO = "Player 2 🟡"
 AWAITING = "Awaiting player"
 
 
