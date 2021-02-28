@@ -1,5 +1,5 @@
 from enum import Enum
-import Discord
+
 
 class Piece(Enum):
     empty = "[ ]"
@@ -120,6 +120,14 @@ class GameManagerDUI(object):
 
     def getBoard(self):
         return self._board
+
+    def getPlayer(self, pid):
+        if pid == 1:
+            return self._player1
+        elif pid == 2:
+            return self._player2
+        else:
+            return None
 
 
 class GameManagerTUI(object):

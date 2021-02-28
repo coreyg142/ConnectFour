@@ -1,6 +1,8 @@
 import os
 import discord
 import GameElements
+from GameElements import Move
+from GameElements import Piece
 from dotenv import load_dotenv
 from discord.ext import commands
 
@@ -22,62 +24,120 @@ def run(row, col):
     @commands.has_permissions(administrator=True)
     async def shutdown(ctx):
         await ctx.channel.send("Bye bye")
+        await ctx.message.delete()
         await bot.logout()
         print("Shutdown complete")
 
-    @bot.command()
-    async def newgame(ctx):
+    @bot.command(name='newgame')
+    async def connectFour(ctx):
 
-        def check(reaction, user):
+        def checkLogin(reaction, user):
             return (str(reaction.emoji) == '1️⃣' or str(reaction.emoji) == '2️⃣') and not user.bot and \
                    reaction.message == assignmentMessage
+
+        def checkInp(user):
+            def innerCheckInp(msg):
+                return msg.author == user and msg.content.startswith("drop ")
+            return innerCheckInp
 
         async def login():
             p1assigned, p2assigned = False, False
             p1, p2 = None, None
             while not p1assigned or not p2assigned:
-                reaction, user = await bot.wait_for("reaction_add", check=check)
+                reaction, user = await bot.wait_for("reaction_add", check=checkLogin)
                 if str(reaction.emoji) == '1️⃣':
                     if not p1assigned:
                         p1assigned = True
                         p1 = user
-                        embedVar.set_field_at(index=0, name=PLAYER_ONE, value=p1.name)
-                        await assignmentMessage.edit(embed=embedVar)
+                        loginEmbed.set_field_at(index=0, name=PLAYER_ONE, value=p1.name)
+                        await assignmentMessage.edit(embed=loginEmbed)
                         await reaction.remove(user)
-                    else:
+                    elif p1assigned and user == p1:
                         p1assigned = False
                         p1 = None
-                        embedVar.set_field_at(index=0, name=PLAYER_ONE, value=AWAITING)
-                        await assignmentMessage.edit(embed=embedVar)
+                        loginEmbed.set_field_at(index=0, name=PLAYER_ONE, value=AWAITING)
+                        await assignmentMessage.edit(embed=loginEmbed)
                         await reaction.remove(user)
                 elif str(reaction.emoji == '2️⃣'):
                     if not p2assigned:
                         p2assigned = True
                         p2 = user
-                        embedVar.set_field_at(index=1, name=PLAYER_TWO, value=p2.name)
-                        await assignmentMessage.edit(embed=embedVar)
+                        loginEmbed.set_field_at(index=1, name=PLAYER_TWO, value=p2.name)
+                        await assignmentMessage.edit(embed=loginEmbed)
                         await reaction.remove(user)
-                    else:
+                    elif p2assigned and user == p2:
                         p2assigned = False
                         p2 = None
-                        embedVar.set_field_at(index=1, name=PLAYER_TWO, value=AWAITING)
-                        await assignmentMessage.edit(embed=embedVar)
+                        loginEmbed.set_field_at(index=1, name=PLAYER_TWO, value=AWAITING)
+                        await assignmentMessage.edit(embed=loginEmbed)
                         await reaction.remove(user)
-            embedVar.description = "Players locked in!"
-            await assignmentMessage.edit(embed=embedVar)
+            loginEmbed.description = "Players locked in!"
+            await assignmentMessage.edit(embed=loginEmbed)
             await assignmentMessage.clear_reactions()
             return p1, p2
 
+        def buildBoardEmbed(curPlayer):
+            boardEmbed = discord.Embed(title="Game Board", description="Current turn: \n{}".format(curPlayer))
+            boardEmbed.add_field(name="Board", value=game.getBoard())
+            boardEmbed.add_field(name="Input", value="{}, which column do you wish to drop in?\n"
+                                                     "Say \"drop [col]\"".format(curPlayer), inline=False)
+            return boardEmbed
+
+        async def mainloop():
+            board = game.getBoard()
+            isOver = False
+            winner = Piece.empty
+
+            while not isOver:
+                await handleInpMove(player1, PLAYER_ONE, game.getPlayer(1), board)
+                isOver, winner = board.checkIfWinner()
+                if isOver: break
+                await handleInpMove(player2, PLAYER_TWO, game.getPlayer(2), board)
+                isOver, winner = board.checkIfWinner()
+
+        async def handleInpMove(user, playerStr, player, board):
+            boardEmbed = buildBoardEmbed(playerStr)
+            await boardMessage.edit(embed=boardEmbed)
+            inp = await playerInput(user, board)
+            board.makeMove(player.getTeam(), inp)
+
+        async def playerInput(player, board):
+            dim = board.getMaxCol()
+            while True:
+                print("awaiting input")
+                inpMsg = await bot.wait_for('message', check=checkInp(player))
+                await inpMsg.delete()
+                try:
+                    inp = int(inpMsg.content.split(" ")[1]) - 1
+                    isValid = board.isValidMove(inp)
+                    if isValid is Move.VALID:
+                        return inp
+                    elif isValid is Move.OUT_OF_BOUNDS:
+                        boardEmbed.set_field_at(index=1, name="Input Error, try again", value=str(isValid) + str(dim),
+                                                inline=False)
+                        await boardMessage.edit(embed=boardEmbed)
+                    elif isValid is Move.COL_FULL:
+                        boardEmbed.set_field_at(index=1, name="Input Error, try again", value=str(isValid),
+                                                inline=False)
+                        await boardMessage.edit(embed=boardEmbed)
+                except ValueError:
+                    boardEmbed.set_field_at(index=1, name="Input Error, try again", value="Please input a number",
+                                            inline=False)
+                    await boardMessage.edit(embed=boardEmbed)
+
+
         game = GameElements.GameManagerDUI(col, row)
-        embedVar = discord.Embed(title="Players", description="Who will be player 1 and player 2?")
-        embedVar.add_field(name=PLAYER_ONE, value=AWAITING)
-        embedVar.add_field(name=PLAYER_TWO, value=AWAITING)
-        assignmentMessage = await ctx.channel.send(embed=embedVar)
+        loginEmbed = discord.Embed(title="Players", description="Who will be user 1 and user 2?")
+        loginEmbed.add_field(name=PLAYER_ONE, value=AWAITING)
+        loginEmbed.add_field(name=PLAYER_TWO, value=AWAITING)
+        assignmentMessage = await ctx.channel.send(embed=loginEmbed)
         await assignmentMessage.add_reaction('1️⃣')
         await assignmentMessage.add_reaction('2️⃣')
         player1, player2 = await login()
         game.login(player1.name, player2.name)
 
-        await ctx.channel.send(game.getBoard())
+        boardEmbed = buildBoardEmbed(PLAYER_ONE)
+        boardMessage = await ctx.channel.send(embed=boardEmbed)
+        await mainloop()
 
     bot.run(TOKEN)
