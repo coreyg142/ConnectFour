@@ -22,7 +22,7 @@ def run(row, col):
         print("{} has connected to Discord!".format(bot.user.name))
 
     @bot.command()
-    @commands.has_permissions(administrator=True)
+    @commands.is_owner()
     async def shutdown(ctx):
         await ctx.channel.send("Bye bye")
         await ctx.message.delete()
