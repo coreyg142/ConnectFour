@@ -9,6 +9,7 @@ from discord.ext import commands
 PLAYER_ONE = "Player 1 🔴"
 PLAYER_TWO = "Player 2 🟡"
 AWAITING = "Awaiting player"
+TURN_PREFIX = "drop "
 
 
 def run(row, col):
@@ -37,7 +38,8 @@ def run(row, col):
 
         def checkInp(user):
             def innerCheckInp(msg):
-                return msg.author == user and msg.content.startswith("drop ")
+                return msg.author == user and msg.content.startswith(TURN_PREFIX)
+
             return innerCheckInp
 
         async def login():
@@ -76,12 +78,26 @@ def run(row, col):
             await assignmentMessage.clear_reactions()
             return p1, p2
 
-        def buildBoardEmbed(curPlayer):
-            boardEmbed = discord.Embed(title="Game Board", description="Current turn: \n{}".format(curPlayer))
+        def buildBoardEmbed(curUser, playerStr):
+            boardEmbed = discord.Embed(title="Game Board", description="Current turn: \n{}".format(playerStr))
             boardEmbed.add_field(name="Board", value=game.getBoard())
             boardEmbed.add_field(name="Input", value="{}, which column do you wish to drop in?\n"
-                                                     "Say \"drop [col]\"".format(curPlayer), inline=False)
+                                                     "Say \"{} [col]\"".format(curUser, TURN_PREFIX), inline=False)
             return boardEmbed
+
+        async def buildWonEmbed(winner):
+            if winner is Piece.red:
+                boardEmbed.description = "GAME OVER!"
+                boardEmbed.set_field_at(index=0, name="Board", value=game.getBoard())
+                boardEmbed.set_field_at(index=1, name="WINNER: ", value="{} has won the game!".format(player1.name),
+                                        inline=False)
+                await boardMessage.edit(embed=boardEmbed)
+            else:
+                boardEmbed.description = "GAME OVER!"
+                boardEmbed.set_field_at(index=0, name="Board", value=game.getBoard())
+                boardEmbed.set_field_at(index=1, name="WINNER: ", value="{} has won the game!".format(player2.name),
+                                        inline=False)
+                await boardMessage.edit(embed=boardEmbed)
 
         async def mainloop():
             board = game.getBoard()
@@ -95,8 +111,11 @@ def run(row, col):
                 await handleInpMove(player2, PLAYER_TWO, game.getPlayer(2), board)
                 isOver, winner = board.checkIfWinner()
 
+            print("Game over!")
+            await buildWonEmbed(winner)
+
         async def handleInpMove(user, playerStr, player, board):
-            boardEmbed = buildBoardEmbed(playerStr)
+            boardEmbed = buildBoardEmbed(user.name, playerStr)
             await boardMessage.edit(embed=boardEmbed)
             inp = await playerInput(user, board)
             board.makeMove(player.getTeam(), inp)
@@ -113,18 +132,20 @@ def run(row, col):
                     if isValid is Move.VALID:
                         return inp
                     elif isValid is Move.OUT_OF_BOUNDS:
+                        boardEmbed.set_field_at(index=0, name="Board", value=game.getBoard())
                         boardEmbed.set_field_at(index=1, name="Input Error, try again", value=str(isValid) + str(dim),
                                                 inline=False)
                         await boardMessage.edit(embed=boardEmbed)
                     elif isValid is Move.COL_FULL:
+                        boardEmbed.set_field_at(index=0, name="Board", value=game.getBoard())
                         boardEmbed.set_field_at(index=1, name="Input Error, try again", value=str(isValid),
                                                 inline=False)
                         await boardMessage.edit(embed=boardEmbed)
                 except ValueError:
+                    boardEmbed.set_field_at(index=0, name="Board", value=game.getBoard())
                     boardEmbed.set_field_at(index=1, name="Input Error, try again", value="Please input a number",
                                             inline=False)
                     await boardMessage.edit(embed=boardEmbed)
-
 
         game = GameElements.GameManagerDUI(col, row)
         loginEmbed = discord.Embed(title="Players", description="Who will be user 1 and user 2?")
@@ -136,7 +157,7 @@ def run(row, col):
         player1, player2 = await login()
         game.login(player1.name, player2.name)
 
-        boardEmbed = buildBoardEmbed(PLAYER_ONE)
+        boardEmbed = buildBoardEmbed(player1, PLAYER_ONE)
         boardMessage = await ctx.channel.send(embed=boardEmbed)
         await mainloop()
 
