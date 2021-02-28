@@ -25,7 +25,6 @@ def run(row, col):
     @commands.is_owner()
     async def shutdown(ctx):
         await ctx.channel.send("Bye bye")
-        await ctx.message.delete()
         await bot.logout()
         print("Shutdown complete")
 
