@@ -11,6 +11,7 @@ PLAYER_TWO = "Player 2 🟡"
 AWAITING = "Awaiting player"
 TURN_PREFIX = "drop "
 INTRO_MESSAGE = "{} has connected to Discord!"
+SHUTDOWN_LOG = "Shutdown complete"
 
 
 def run(row, col):
