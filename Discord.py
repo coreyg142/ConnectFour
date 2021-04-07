@@ -11,6 +11,7 @@ PLAYER_TWO = "Player 2 🟡"
 AWAITING = "Awaiting player"
 TURN_PREFIX = "drop "
 INTRO_MESSAGE = "{} has connected to Discord!"
+SHUTDOWN_LOG = "Shutdown complete"
 
 
 def run(row, col):
@@ -27,7 +28,7 @@ def run(row, col):
     async def shutdown(ctx):
         await ctx.channel.send("Bye bye")
         await bot.logout()
-        print("Shutdown complete")
+        print(SHUTDOWN_LOG)
 
     @bot.command(name='newgame')
     async def connectFour(ctx):
