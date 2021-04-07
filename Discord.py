@@ -10,6 +10,7 @@ PLAYER_ONE = "Player 1 🔴"
 PLAYER_TWO = "Player 2 🟡"
 AWAITING = "Awaiting player"
 TURN_PREFIX = "drop "
+INTRO_MESSAGE = "{} has connected to Discord!"
 
 
 def run(row, col):
@@ -19,7 +20,7 @@ def run(row, col):
 
     @bot.event
     async def on_ready():
-        print("{} has connected to Discord!".format(bot.user.name))
+        print(INTRO_MESSAGE.format(bot.user.name))
 
     @bot.command()
     @commands.is_owner()
